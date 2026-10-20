@@ -1,0 +1,9 @@
+# playwright-cli auto-generated snapshots and console logs
+.playwright-cli/
+
+# Per-user Claude Code settings (permissions granted on this machine)
+.claude/settings.local.json
+
+node_modules/
+.DS_Store
+Thumbs.db

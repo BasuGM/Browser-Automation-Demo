@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Northwind Onboarding</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%237c3aed'/%3E%3Cpath d='M16 7l6.5 17L16 19.8 9.5 24z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #07070c;
+    --surface: rgba(255, 255, 255, 0.035);
+    --surface-hover: rgba(255, 255, 255, 0.065);
+    --border: rgba(255, 255, 255, 0.1);
+    --border-strong: rgba(255, 255, 255, 0.22);
+    --text: #f4f2ff;
+    --muted: #a19fb8;
+    --faint: #6f6c88;
+    --accent: #8b5cf6;
+    --accent-strong: #7c3aed;
+    --accent-hover: #6d28d9;
+    --accent-bright: #b49bff;
+    --accent-soft: rgba(139, 92, 246, 0.16);
+    --accent-glow: rgba(139, 92, 246, 0.5);
+    --error: #fb7185;
+    --radius: 14px;
+    --font-display: "Space Grotesk", system-ui, sans-serif;
+    --font-body: "Inter", system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* Ambient glow + faint grid behind everything */
+  .bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(60vmax 50vmax at 10% -15%, rgba(139, 92, 246, 0.24), transparent 60%),
+      radial-gradient(50vmax 40vmax at 110% 115%, rgba(34, 211, 238, 0.10), transparent 60%);
+  }
+  .bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    -webkit-mask-image: radial-gradient(ellipse at 50% 30%, #000 15%, transparent 70%);
+            mask-image: radial-gradient(ellipse at 50% 30%, #000 15%, transparent 70%);
+  }
+
+  .progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    z-index: 3;
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--accent), #c084fc);
+    box-shadow: 0 0 14px var(--accent-glow);
+    transition: width 0.3s ease;
+  }
+
+  header.top {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px clamp(16px, 4vw, 40px);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.0625rem;
+    letter-spacing: -0.01em;
+  }
+  .brand svg { width: 28px; height: 28px; flex: none; }
+  .progress-text {
+    color: var(--muted);
+    font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  main {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px 56px;
+  }
+
+  .screen { width: 100%; max-width: 680px; }
+  .enter-fwd  { animation: in-fwd  0.2s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  .enter-back { animation: in-back 0.2s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  @keyframes in-fwd  { from { opacity: 0; transform: translateY(24px); } }
+  @keyframes in-back { from { opacity: 0; transform: translateY(-24px); } }
+
+  .intro {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 36px;
+    padding: 8px 14px 8px 8px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+  .intro strong {
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-bright);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px;
+    color: var(--accent-bright);
+    font-family: var(--font-display);
+    font-size: 0.9375rem;
+    font-weight: 600;
+  }
+  .eyebrow .opt {
+    margin-left: 4px;
+    padding: 2px 9px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--faint);
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .question {
+    margin: 0 0 10px;
+    font-family: var(--font-display);
+    font-size: clamp(1.625rem, 4.2vw, 2.5rem);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+  .question label { cursor: text; }
+  .hint {
+    margin: 0 0 32px;
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .field {
+    width: 100%;
+    padding: 8px 0 12px;
+    border: 0;
+    border-bottom: 2px solid var(--border-strong);
+    border-radius: 0;
+    background: transparent;
+    color: var(--text);
+    font: 500 clamp(1.25rem, 3.2vw, 1.75rem)/1.3 var(--font-body);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .field::placeholder { color: var(--faint); }
+  .field:focus {
+    border-bottom-color: var(--accent);
+    box-shadow: 0 12px 24px -20px var(--accent-glow);
+  }
+  .field[aria-invalid="true"] { border-bottom-color: var(--error); }
+  textarea.field { display: block; min-height: 3.4em; resize: none; overflow: hidden; }
+
+  .error {
+    min-height: 1.5em;
+    margin: 12px 0 0;
+    color: var(--error);
+    font-size: 0.9375rem;
+  }
+  .shake { animation: shake 0.3s; }
+  @keyframes shake {
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(7px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(3px); }
+  }
+
+  .choices { display: grid; gap: 10px; max-width: 480px; }
+  .choices:focus { outline: none; }
+  .choice {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 13px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    font: 500 1.0625rem/1.3 var(--font-body);
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  }
+  .choice:hover { background: var(--surface-hover); border-color: var(--border-strong); }
+  .choice .key {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    color: var(--muted);
+    font: 600 0.8125rem var(--font-display);
+    transition: inherit;
+  }
+  .choice .check { margin-left: auto; flex: none; opacity: 0; color: var(--accent-bright); }
+  .choice[aria-checked="true"] {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent), 0 10px 30px -14px var(--accent-glow);
+  }
+  .choice[aria-checked="true"] .key { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .choice[aria-checked="true"] .check { opacity: 1; }
+  .choice.picked { animation: pick 0.15s; }
+  @keyframes pick { 50% { transform: scale(0.985); } }
+
+  :focus-visible { outline: 2px solid var(--accent-bright); outline-offset: 3px; }
+  .field:focus-visible { outline: none; }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .btn {
+    appearance: none;
+    padding: 12px 20px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font: 600 1rem var(--font-body);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .btn.primary {
+    background: var(--accent-strong);
+    color: #fff;
+    box-shadow: 0 10px 28px -12px var(--accent-glow), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  .btn.primary:hover { background: var(--accent-hover); }
+  .btn.ghost { background: transparent; border-color: var(--border); color: var(--muted); }
+  .btn.ghost:hover { border-color: var(--border-strong); color: var(--text); }
+  .enter-hint { color: var(--faint); font-size: 0.8125rem; }
+  kbd { font: inherit; font-weight: 600; color: var(--muted); }
+
+  /* Summary */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent-bright);
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+  .screen h1:focus { outline: none; }
+  .summary {
+    margin: 0;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  .summary .row {
+    display: grid;
+    grid-template-columns: minmax(120px, 180px) 1fr;
+    gap: 16px;
+    padding: 13px 18px;
+    border-top: 1px solid var(--border);
+  }
+  .summary .row:first-child { border-top: 0; }
+  .summary dt { padding-top: 2px; color: var(--muted); font-size: 0.875rem; }
+  .summary dd {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+    margin: 0;
+  }
+  .summary .value { min-width: 0; overflow-wrap: anywhere; white-space: pre-wrap; line-height: 1.45; }
+  .summary .value.empty { color: var(--faint); }
+  .edit {
+    flex: none;
+    padding: 2px 6px;
+    border: 0;
+    border-radius: 6px;
+    background: none;
+    color: var(--accent-bright);
+    font: 600 0.8125rem var(--font-body);
+    cursor: pointer;
+  }
+  .edit:hover { text-decoration: underline; }
+
+  footer {
+    position: relative;
+    z-index: 1;
+    padding: 0 16px 20px;
+    color: var(--faint);
+    font-size: 0.75rem;
+    text-align: center;
+  }
+
+  @media (max-width: 520px) {
+    .summary .row { grid-template-columns: 1fr; gap: 4px; }
+    .intro { border-radius: 16px; align-items: flex-start; flex-direction: column; padding: 10px 14px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div>
+<div class="progress" role="progressbar" aria-label="Onboarding progress" aria-valuemin="0" aria-valuemax="12" aria-valuenow="0">
+  <div class="progress-fill" id="progress-fill"></div>
+</div>
+
+<header class="top">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <defs>
+        <linearGradient id="logo" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#8b5cf6"/><stop offset="1" stop-color="#22d3ee"/>
+        </linearGradient>
+      </defs>
+      <rect width="32" height="32" rx="9" fill="url(#logo)"/>
+      <path d="M16 7l6.5 17L16 19.8 9.5 24z" fill="#fff"/>
+    </svg>
+    Northwind Studio
+  </div>
+  <span class="progress-text" id="progress-text"></span>
+</header>
+
+<main id="stage"></main>
+
+<footer>Demo onboarding · answers stay in your browser</footer>
+
+<script>
+(() => {
+  const STORAGE_KEY = 'northwind-onboarding-v1';
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const firstName = (a) => (a.firstName || '').trim() || 'there';
+
+  const QUESTIONS = [
+    { id: 'firstName', type: 'text', short: 'First name', required: true, autocomplete: 'given-name',
+      label: () => "What's your first name?",
+      hint: "Let's start with the basics." },
+    { id: 'lastName', type: 'text', short: 'Last name', required: true, autocomplete: 'family-name',
+      label: (a) => `Nice to meet you, ${firstName(a)}. What's your last name?` },
+    { id: 'phone', type: 'tel', short: 'Phone', required: true, autocomplete: 'tel',
+      label: () => "What's the best number to reach you?",
+      hint: "We'll only call about your project." },
+    { id: 'email', type: 'email', short: 'Email', required: true, autocomplete: 'email',
+      label: () => 'Where should we send project updates?',
+      hint: 'Your work email works best.' },
+    { id: 'business', type: 'text', short: 'Business', required: true, autocomplete: 'organization',
+      label: () => "What's the name of your business?" },
+    { id: 'role', type: 'text', short: 'Role', required: false, autocomplete: 'organization-title',
+      label: (a) => `What's your role at ${(a.business || '').trim() || 'your company'}?`,
+      hint: 'e.g. Founder, Head of Marketing. Press Enter to skip.' },
+    { id: 'industry', type: 'choice', short: 'Industry', required: true,
+      label: () => 'Which industry are you in?',
+      options: ['Technology / SaaS', 'E-commerce & retail', 'Health & wellness', 'Finance', 'Hospitality & food', 'Something else'] },
+    { id: 'companySize', type: 'choice', short: 'Company size', required: true,
+      label: () => 'How big is your team?',
+      options: ['Just me', '2–10', '11–50', '51–200', '200+'] },
+    { id: 'goal', type: 'choice', short: 'Primary goal', required: true,
+      label: (a) => `What do you want help with most, ${firstName(a)}?`,
+      options: ['Brand identity', 'Website', 'Marketing & growth', 'Product design'] },
+    { id: 'budget', type: 'choice', short: 'Monthly budget', required: true,
+      label: () => "What's your monthly budget for this?",
+      options: ['Under $2k', '$2k – $5k', '$5k – $15k', '$15k+', 'Not sure yet'] },
+    { id: 'source', type: 'choice', short: 'Heard about us', required: false,
+      label: () => 'How did you hear about us?',
+      options: ['Referral from a friend', 'Search engine', 'Social media', 'Podcast or event', 'Other'] },
+    { id: 'notes', type: 'textarea', short: 'Notes', required: false,
+      label: (a) => `Anything else we should know, ${firstName(a)}?`,
+      hint: 'Deadlines, links, inspiration. Shift ↵ for a new line.' },
+  ];
+  const TOTAL = QUESTIONS.length;
+
+  // ---------- persistence ----------
+  const fresh = () => ({ answers: {}, step: 0, editFrom: null, completedAt: null });
+
+  function load() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (saved && typeof saved === 'object' && saved.answers) {
+        return { ...fresh(), answers: saved.answers, step: saved.step ?? 0, completedAt: saved.completedAt || null };
+      }
+    } catch (e) { /* storage unavailable or corrupt: start fresh */ }
+    return fresh();
+  }
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        answers: state.answers, step: state.step, completedAt: state.completedAt,
+      }));
+    } catch (e) { /* ignore */ }
+  }
+  function clearSaved() {
+    try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
+  }
+
+  if (new URLSearchParams(location.search).has('reset')) {
+    clearSaved();
+    history.replaceState(null, '', location.pathname);
+  }
+  let state = load();
+
+  // ---------- phone + validation ----------
+  function normalizePhone(v) {
+    const s = String(v || '').trim();
+    const digits = s.replace(/\D/g, '');
+    return digits ? (s.startsWith('+') ? '+' : '') + digits : '';
+  }
+  function formatPhone(raw) {
+    if (!raw) return '';
+    const d = raw.replace(/\D/g, '');
+    if (!raw.startsWith('+') && d.length === 10) return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+    if (d.length === 11 && d[0] === '1') return `+1 (${d.slice(1, 4)}) ${d.slice(4, 7)}-${d.slice(7)}`;
+    return raw;
+  }
+
+  // Returns an error message, or '' when the value is acceptable.
+  function validate(q, value) {
+    const v = typeof value === 'string' ? value.trim() : '';
+    if (!v) {
+      if (!q.required) return '';
+      return q.type === 'choice' ? 'Please pick one to continue.' : 'Please fill this in to continue.';
+    }
+    if (q.type === 'tel') {
+      const n = v.replace(/\D/g, '').length;
+      if (n < 7 || n > 15) return 'That number looks off. Enter 7 to 15 digits.';
+    }
+    if (q.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) return "That email doesn't look quite right.";
+    if (q.type === 'choice' && !q.options.includes(v)) return 'Please pick one to continue.';
+    return '';
+  }
+
+  // ---------- routing ----------
+  const stage = document.getElementById('stage');
+  let currentView = null;  // question index, or 'summary'
+  let busy = false;        // true between a valid submit and the next render
+
+  const rank = (view) => (view === 'summary' ? TOTAL : view);
+  const hashFor = (view) => (view === 'summary' ? '#summary' : `#q=${view + 1}`);
+
+  function parseHash() {
+    const h = location.hash.slice(1);
+    if (h === 'summary') return 'summary';
+    const m = /^q=(\d+)$/.exec(h);
+    if (m) {
+      const i = Number(m[1]) - 1;
+      if (i >= 0 && i < TOTAL) return i;
+    }
+    return null;
+  }
+
+  // Never let a URL skip past an unanswered required question.
+  function guard(target) {
+    const missing = QUESTIONS.findIndex((q) => q.required && validate(q, state.answers[q.id]));
+    if (missing === -1) return target;
+    if (target === 'summary' || target > missing) return missing;
+    return target;
+  }
+
+  function route() {
+    let target = parseHash();
+    if (target === null) target = state.step ?? 0;
+    const view = guard(target);
+    if (location.hash !== hashFor(view)) history.replaceState(null, '', hashFor(view));
+    render(view);
+  }
+
+  function go(view) {
+    if (location.hash === hashFor(view)) route();
+    else location.hash = hashFor(view);
+  }
+
+  window.addEventListener('hashchange', route);
+
+  // ---------- rendering ----------
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  const CHECK_ICON = '<svg class="check" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+
+  function render(view) {
+    const prev = currentView;
+    if (view !== state.editFrom) state.editFrom = null;
+    if (view === 'summary' && !state.completedAt) state.completedAt = new Date().toISOString();
+    currentView = view;
+    state.step = view;
+    busy = false;
+    save();
+
+    const dir = prev === null || rank(view) >= rank(prev) ? 'fwd' : 'back';
+    const screen = view === 'summary' ? buildSummary() : buildQuestion(view);
+    screen.classList.add('screen', `enter-${dir}`);
+    screen.dataset.ready = 'false';
+    stage.replaceChildren(screen);
+    updateProgress(view);
+
+    let finished = false;
+    const finish = () => {
+      if (finished || stage.firstElementChild !== screen) return;
+      finished = true;
+      screen.classList.remove(`enter-${dir}`);
+      focusScreen(screen, view);
+      screen.dataset.ready = 'true';
+    };
+    if (reduceMotion) {
+      finish();
+    } else {
+      screen.addEventListener('animationend', (e) => { if (e.target === screen) finish(); });
+      setTimeout(finish, 260); // fallback if animationend never fires
+    }
+  }
+
+  function updateProgress(view) {
+    const done = view === 'summary' ? TOTAL : view + 1;
+    document.getElementById('progress-fill').style.width = `${(done / TOTAL) * 100}%`;
+    document.querySelector('.progress').setAttribute('aria-valuenow', String(done));
+    document.getElementById('progress-text').textContent = view === 'summary' ? 'Complete' : `${done} / ${TOTAL}`;
+  }
+
+  function focusScreen(screen, view) {
+    if (view === 'summary') {
+      screen.querySelector('h1').focus({ preventScroll: true });
+      return;
+    }
+    const field = screen.querySelector('.field');
+    if (field) {
+      field.focus({ preventScroll: true });
+      try { field.setSelectionRange(field.value.length, field.value.length); } catch (e) { /* email inputs */ }
+      return;
+    }
+    // With nothing picked, focus the group itself so Enter validates instead of picking option A.
+    const target = screen.querySelector('.choice[aria-checked="true"]') || screen.querySelector('.choices');
+    if (target) target.focus({ preventScroll: true });
+  }
+
+  function buildQuestion(i) {
+    const q = QUESTIONS[i];
+    const value = state.answers[q.id] ?? '';
+    const editing = state.editFrom === i;
+    const label = esc(q.label(state.answers));
+    const hint = q.hint || (q.type === 'choice'
+      ? `Choose one, or press ${String.fromCharCode(65)}–${String.fromCharCode(64 + q.options.length)}.${q.required ? '' : ' Press Enter to skip.'}`
+      : '');
+    const okLabel = editing ? 'Save' : i === TOTAL - 1 ? 'Submit' : 'OK';
+
+    let field;
+    if (q.type === 'choice') {
+      field = `<div class="choices field-wrap" tabindex="-1" role="radiogroup" aria-labelledby="q-title" aria-describedby="q-hint q-error">${
+        q.options.map((opt, n) => `
+          <button type="button" class="choice" role="radio" aria-checked="${opt === value}" data-index="${n}">
+            <span class="key" aria-hidden="true">${String.fromCharCode(65 + n)}</span>
+            <span>${esc(opt)}</span>${CHECK_ICON}
+          </button>`).join('')
+      }</div>`;
+    } else if (q.type === 'textarea') {
+      field = `<div class="field-wrap"><textarea id="q-field" class="field" rows="2" placeholder="Type your answer here…" aria-describedby="q-hint q-error">${esc(value)}</textarea></div>`;
+    } else {
+      const shown = q.type === 'tel' ? formatPhone(value) : value;
+      const extra = q.type === 'tel' ? ' inputmode="tel"' : '';
+      field = `<div class="field-wrap"><input id="q-field" class="field" type="${q.type}" value="${esc(shown)}" autocomplete="${q.autocomplete}"${extra}
+        placeholder="${q.type === 'tel' ? '(555) 123-4567' : q.type === 'email' ? 'name@company.com' : 'Type your answer here…'}"
+        aria-describedby="q-hint q-error" ${q.required ? 'aria-required="true"' : ''} spellcheck="false"></div>`;
+    }
+
+    const section = document.createElement('section');
+    section.setAttribute('aria-labelledby', 'q-title');
+    section.innerHTML = `
+      ${i === 0 && !editing ? '<p class="intro"><strong>Welcome to Northwind</strong> 12 quick questions, about two minutes.</p>' : ''}
+      <p class="eyebrow">${i + 1} <span aria-hidden="true">→</span>${q.required ? '' : '<span class="opt">Optional</span>'}</p>
+      <h1 class="question" id="q-title">${q.type === 'choice' ? label : `<label for="q-field">${label}</label>`}</h1>
+      <p class="hint" id="q-hint">${esc(hint)}</p>
+      ${field}
+      <p class="error" id="q-error" aria-live="polite"></p>
+      <div class="actions">
+        <button type="button" class="btn primary ok">${okLabel} <span aria-hidden="true">↵</span></button>
+        <button type="button" class="btn ghost back"${i === 0 && !editing ? ' hidden' : ''}>${editing ? 'Cancel' : '<span aria-hidden="true">↑</span> Back'}</button>
+        <span class="enter-hint">press <kbd>Enter ↵</kbd></span>
+      </div>`;
+
+    section.querySelector('.ok').addEventListener('click', submit);
+    section.querySelector('.back').addEventListener('click', back);
+
+    const input = section.querySelector('.field');
+    if (input) {
+      input.addEventListener('input', () => {
+        clearError(section);
+        if (input.tagName === 'TEXTAREA') autosize(input);
+      });
+      if (q.type === 'tel') {
+        input.addEventListener('blur', () => {
+          const raw = normalizePhone(input.value);
+          if (raw && !validate(q, raw)) input.value = formatPhone(raw);
+        });
+      }
+      if (input.tagName === 'TEXTAREA') requestAnimationFrame(() => autosize(input));
+    }
+    section.querySelectorAll('.choice').forEach((btn) => {
+      btn.addEventListener('click', () => pick(Number(btn.dataset.index)));
+    });
+    return section;
+  }
+
+  function buildSummary() {
+    const a = state.answers;
+    const rows = QUESTIONS.map((q, i) => {
+      const raw = a[q.id] ?? '';
+      const shown = q.type === 'tel' ? formatPhone(raw) : raw;
+      return `
+        <div class="row">
+          <dt>${esc(q.short)}</dt>
+          <dd>
+            <span class="value${shown ? '' : ' empty'}">${shown ? esc(shown) : '—'}</span>
+            <button type="button" class="edit" data-index="${i}" aria-label="Edit ${esc(q.short)}">Edit</button>
+          </dd>
+        </div>`;
+    }).join('');
+
+    const section = document.createElement('section');
+    section.setAttribute('aria-labelledby', 'q-title');
+    section.innerHTML = `
+      <div class="badge">${CHECK_ICON.replace('class="check" ', '')} All set</div>
+      <h1 class="question" id="q-title" tabindex="-1">Welcome aboard, ${esc(firstName(a))}.</h1>
+      <p class="hint">Here's everything you told us. A Northwind producer will reach out within one business day.</p>
+      <dl class="summary">${rows}</dl>
+      <div class="actions">
+        <button type="button" class="btn primary download">Download JSON</button>
+        <button type="button" class="btn ghost restart">Start over</button>
+      </div>`;
+
+    section.querySelectorAll('.edit').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const i = Number(btn.dataset.index);
+        state.editFrom = i;
+        go(i);
+      });
+    });
+    section.querySelector('.download').addEventListener('click', downloadJSON);
+    section.querySelector('.restart').addEventListener('click', () => {
+      clearSaved();
+      state = fresh();
+      go(0);
+    });
+    return section;
+  }
+
+  function autosize(el) {
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }
+
+  // ---------- actions ----------
+  function readValue(q, screen) {
+    if (q.type === 'choice') return state.answers[q.id] ?? '';
+    const v = screen.querySelector('.field').value;
+    return q.type === 'tel' ? normalizePhone(v) : v.trim();
+  }
+
+  function showError(screen, message) {
+    const error = screen.querySelector('.error');
+    error.textContent = message;
+    const wrap = screen.querySelector('.field-wrap');
+    wrap.classList.remove('shake');
+    void wrap.offsetWidth; // restart the animation
+    wrap.classList.add('shake');
+    const field = screen.querySelector('.field');
+    if (field) {
+      field.setAttribute('aria-invalid', 'true');
+      field.focus();
+    } else {
+      (screen.querySelector('.choice[aria-checked="true"]') || screen.querySelector('.choices')).focus();
+    }
+  }
+
+  function clearError(screen) {
+    screen.querySelector('.error').textContent = '';
+    const field = screen.querySelector('.field');
+    if (field) field.removeAttribute('aria-invalid');
+  }
+
+  function advance() {
+    const i = currentView;
+    if (state.editFrom === i) go('summary');
+    else go(i + 1 < TOTAL ? i + 1 : 'summary');
+  }
+
+  function submit() {
+    if (busy || typeof currentView !== 'number') return;
+    const q = QUESTIONS[currentView];
+    const screen = stage.firstElementChild;
+    const value = readValue(q, screen);
+    const error = validate(q, value);
+    if (error) {
+      showError(screen, error);
+      return;
+    }
+    if (q.type !== 'choice') state.answers[q.id] = value;
+    save();
+    busy = true;
+    advance();
+  }
+
+  function pick(index) {
+    if (busy || typeof currentView !== 'number') return;
+    const q = QUESTIONS[currentView];
+    if (q.type !== 'choice' || index < 0 || index >= q.options.length) return;
+    const screen = stage.firstElementChild;
+    state.answers[q.id] = q.options[index];
+    save();
+    clearError(screen);
+    screen.querySelectorAll('.choice').forEach((btn, n) => btn.setAttribute('aria-checked', String(n === index)));
+    const chosen = screen.querySelectorAll('.choice')[index];
+    chosen.classList.add('picked');
+    chosen.focus({ preventScroll: true });
+    busy = true;
+    setTimeout(advance, reduceMotion ? 0 : 150);
+  }
+
+  function back() {
+    if (busy || typeof currentView !== 'number') return;
+    const i = currentView;
+    if (state.editFrom === i) {
+      go('summary'); // cancel the edit; keep the saved answer
+      return;
+    }
+    const q = QUESTIONS[i];
+    if (q.type !== 'choice') {
+      state.answers[q.id] = readValue(q, stage.firstElementChild); // keep the draft
+      save();
+    }
+    if (i > 0) go(i - 1);
+  }
+
+  function downloadJSON() {
+    const payload = { business: 'Northwind Studio', submittedAt: state.completedAt, answers: state.answers };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'northwind-onboarding.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (typeof currentView !== 'number' || e.isComposing || e.ctrlKey || e.metaKey || e.altKey) return;
+    const q = QUESTIONS[currentView];
+    const t = e.target;
+
+    if (e.key === 'Enter') {
+      if (t.tagName === 'TEXTAREA' && e.shiftKey) return;
+      if (t.classList && t.classList.contains('back')) return; // let Back activate natively
+      e.preventDefault();
+      if (q.type === 'choice' && t.getAttribute && t.getAttribute('role') === 'radio') pick(Number(t.dataset.index));
+      else submit();
+      return;
+    }
+    if (e.key === 'ArrowUp' && t.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      back();
+      return;
+    }
+    if (q.type === 'choice' && /^[a-z]$/i.test(e.key)) {
+      const index = e.key.toUpperCase().charCodeAt(0) - 65;
+      if (index < q.options.length) {
+        e.preventDefault();
+        pick(index);
+      }
+    }
+  });
+
+  route();
+})();
+</script>
+</body>
+</html>
